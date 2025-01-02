@@ -4,6 +4,7 @@
             <v-container>
                 <v-row>
                     <v-col>
+                        <!-- This is where the number input for revolutions is -->
                         <number-input
                             :label="$t('Panels.ExtruderControlPanel.FilamentLength')"
                             param="feedamount"
@@ -16,7 +17,7 @@
                             :min="0.01"
                             :max="maxExtrudeOnlyDistance"
                             :dec="2"
-                            unit="mm"
+                            unit=""
                             :submit-on-blur="true"
                             @submit="setFeedamount" />
                         <v-item-group class="_btn-group pt-3">
@@ -32,6 +33,7 @@
                         </v-item-group>
                     </v-col>
                     <v-col>
+                        <!-- This is where the number input for RPM is-->
                         <number-input
                             :label="$t('Panels.ExtruderControlPanel.ExtrusionFeedrate')"
                             param="feedrate"
@@ -45,7 +47,7 @@
                             :max="null"
                             :dec="2"
                             type="number"
-                            unit="mm/s"
+                            unit="RPM" 
                             @submit="setFeedrate" />
                         <v-item-group class="_btn-group pt-3">
                             <v-btn
@@ -267,20 +269,22 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
             this.setFeedamount({ value: this.maxExtrudeOnlyDistance })
         }
     }
-
+/**
+ * This is where to multiply the rotation distance with the retract and extrude commands - NOTE - The motor microstep has to be the same as in the firmware as set with external servo software
+ */
     sendRetract(): void {
-        this.sendCommand(this.feedamount * -1, 'btnRetract')
+        this.sendCommand(this.feedamount * (-40.82), 'btnRetract')
     }
 
     sendExtrude(): void {
-        this.sendCommand(this.feedamount, 'btnExtrude')
+        this.sendCommand(this.feedamount * (40.82), 'btnExtrude')
     }
-
+//**This is where to multiply rotation distance by the feedrate to get RPM */
     sendCommand(length: number, loading: string): void {
         let gcode =
             `SAVE_GCODE_STATE NAME=_ui_extrude\n` +
             `M83\n` +
-            `G1 E${length} F${this.feedrate * 60}\n` +
+            `G1 E${length} F${this.feedrate * 40.82}\n` +
             `RESTORE_GCODE_STATE NAME=_ui_extrude`
 
         if (this.existsClientLinearMoveMacro) {

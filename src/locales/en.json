@@ -616,8 +616,8 @@
             "ExtruderControl": "Extruder Control",
             "ExtruderTempTooLow": "Extruder temp. <",
             "ExtrusionFactor": "Extrusion factor",
-            "ExtrusionFeedrate": "Extrusion Feedrate",
-            "FilamentLength": "Filament Length",
+            "ExtrusionFeedrate": "Speed",
+            "FilamentLength": "Revolutions",
             "FirmwareRetraction": "Firmware Retraction",
             "FirmwareRetractionSettings": {
                 "RetractLength": "Retract Length",
@@ -625,7 +625,7 @@
                 "UnretractExtraLength": "Unretract Extra Length",
                 "UnretractSpeed": "Unretract Speed"
             },
-            "Headline": "Extruder",
+            "Headline": "Cold Extrude Allowed - Use Caution",
             "LoadFilament": "Load Filament",
             "PressureAdvance": "Pressure Advance",
             "PressureAdvanceSettings": {
