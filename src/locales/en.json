@@ -673,7 +673,7 @@
         },
         "MiniconsolePanel": {
             "Autoscroll": "Autoscroll",
-            "Headline": "Console",
+            "Headline": "GCODE & Command Console",
             "HideTemperatures": "Hide temperatures",
             "HideTimelapse": "Hide Timelapse",
             "RawOutput": "RAW-Output (for debugging)",
