@@ -1,6 +1,6 @@
 <template>
     <panel
-        v-if="klipperReadyForGui"
+        
         :icon="mdiThermometerLines"
         :title="$t('Panels.TemperaturePanel.Headline')"
         :collapsible="true"
