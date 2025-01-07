@@ -23,6 +23,10 @@ export default class ExtruderMixin extends Vue {
         return this.activeExtruderSettings?.nozzle_diameter ?? 0.4
     }
 
+    get rotationDistance(): number {
+        return this.activeExtruderSettings?.rotation_distance 
+    }
+
     get feedamount(): number {
         return parseFloat(this.$store.state.gui.control.extruder.feedamount)
     }

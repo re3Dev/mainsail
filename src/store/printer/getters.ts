@@ -564,6 +564,7 @@ export const getters: GetterTree<PrinterState, RootState> = {
                         nozzleDiameter: extruder.nozzle_diameter,
                         minExtrudeTemp: extruder.min_extrude_temp,
                         maxExtrudeOnlyDistance: extruder.max_extrude_only_distance,
+                        rotationDistance: extruder.rotation_distance,
                     })
                 })
         }

@@ -233,6 +233,7 @@ export interface PrinterStateExtruder {
     minExtrudeTemp: number
     nozzleDiameter: number
     maxExtrudeOnlyDistance: number
+    rotationDistance: number
 }
 
 export interface PrinterStateExtruderStepper {

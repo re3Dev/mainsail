@@ -273,18 +273,18 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
  * This is where to multiply the rotation distance with the retract and extrude commands - NOTE - The motor microstep has to be the same as in the firmware as set with external servo software
  */
     sendRetract(): void {
-        this.sendCommand(this.feedamount * (-40.82), 'btnRetract')
+        this.sendCommand(this.feedamount * -1 * this.rotationDistance, 'btnRetract')
     }
 
     sendExtrude(): void {
-        this.sendCommand(this.feedamount * (40.82), 'btnExtrude')
+        this.sendCommand(this.feedamount * this.rotationDistance, 'btnExtrude')
     }
 //**This is where to multiply rotation distance by the feedrate to get RPM */
     sendCommand(length: number, loading: string): void {
         let gcode =
             `SAVE_GCODE_STATE NAME=_ui_extrude\n` +
             `M83\n` +
-            `G1 E${length} F${this.feedrate * 40.82}\n` +
+            `G1 E${length} F${this.feedrate * this.rotationDistance}\n` +
             `RESTORE_GCODE_STATE NAME=_ui_extrude`
 
         if (this.existsClientLinearMoveMacro) {
