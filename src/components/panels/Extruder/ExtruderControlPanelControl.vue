@@ -2,6 +2,14 @@
     <responsive :breakpoints="{ large: (el) => el.width >= 640 }">
         <template #default="{ el }">
             <v-container>
+                <v-row style="font-size: 0.8em" class="text--disabled text-caption font-weight-light">
+                &nbsp;&nbsp;&nbsp;Extruder live position:&nbsp; 
+                <div style="font-weight: bold">{{ liveRotation }} </div>
+                &nbsp;revolutions
+                </v-row>
+                <br>
+                <v-row>
+                </v-row>
                 <v-row>
                     <v-col>
                         <!-- This is where the number input for revolutions is -->
@@ -32,6 +40,7 @@
                             </v-btn>
                         </v-item-group>
                     </v-col>
+                    
                     <v-col>
                         <!-- This is where the number input for RPM is-->
                         <number-input
@@ -190,6 +199,7 @@
                 </v-row>
             </v-container>
             <!-- EXTRUSION ESTIMATION NOTE -->
+            
             <estimated-extrusion-output />
         </template>
     </responsive>
@@ -257,7 +267,30 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
 
         return '_CLIENT_LINEAR_MOVE' in macros
     }
+    get livePositions() {
+        const pos = this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0, 0]
+        return {
+            x: pos[0]?.toFixed(2) ?? '--',
+            y: pos[1]?.toFixed(2) ?? '--',
+            z: pos[2]?.toFixed(3) ?? '--',
+            e: pos[3]?.toFixed(2) ?? '--',
+        }
+    }
 
+    get gcodePositions() {
+        const pos = this.$store.state.printer.gcode_move?.gcode_position ?? [0, 0, 0, 0]
+        return {
+            x: pos[0]?.toFixed(2) ?? '--',
+            y: pos[1]?.toFixed(2) ?? '--',
+            z: pos[2]?.toFixed(3) ?? '--',
+            e: pos[3]?.toFixed(2) ?? '--',
+        }
+    }
+
+    get liveRotation() {
+        const rot = Math.round(this.livePositions.e / this.rotationDistance * 100) / 100
+        return rot
+    }
     @Watch('maxExtrudeOnlyDistance', { immediate: true })
     onMaxExtrudeOnlyDistanceChange(): void {
         /**

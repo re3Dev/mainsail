@@ -63,6 +63,16 @@
                             :disabled="!zAxisHomed"
                             @submit="sendCmd" />
                     </v-col>
+                    <v-col :class="el.is.xsmall ? 'col-12' : 'col-4'">
+                        <move-to-input
+                            v-model="input.e.pos"
+                            :label="livePositions.e"
+                            :suffix="'E'"
+                            :step="0.001"
+                            :current-pos="gcodePositions.e"
+                            :readonly="['printing'].includes(printer_state)"
+                            @submit="sendCmd" />
+                    </v-col>
                 </v-row>
             </template>
         </responsive>
@@ -88,6 +98,7 @@ export default class MoveToControl extends Mixins(BaseMixin, ControlMixin) {
         x: { pos: '', valid: true },
         y: { pos: '', valid: true },
         z: { pos: '', valid: true },
+        e: { pos: '', valid: true },
     }
 
     @Watch('gcodePositions.x', { immediate: true })
@@ -105,6 +116,12 @@ export default class MoveToControl extends Mixins(BaseMixin, ControlMixin) {
         this.input.z.pos = newVal
     }
 
+    @Watch('gcodePositions.e', { immediate: true })
+    updatePositionE(newVal: string): void {
+        this.input.e.pos = newVal
+    }
+
+
     /**
      * Axes positions and positioning mode (G90 / G91)
      */
@@ -119,20 +136,22 @@ export default class MoveToControl extends Mixins(BaseMixin, ControlMixin) {
     }
 
     get livePositions() {
-        const pos = this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0]
+        const pos = this.$store.state.printer.motion_report?.live_position ?? [0, 0, 0, 0]
         return {
             x: pos[0]?.toFixed(2) ?? '--',
             y: pos[1]?.toFixed(2) ?? '--',
             z: pos[2]?.toFixed(3) ?? '--',
+            e: pos[3]?.toFixed(2) ?? '--',
         }
     }
 
     get gcodePositions() {
-        const pos = this.$store.state.printer.gcode_move?.gcode_position ?? [0, 0, 0]
+        const pos = this.$store.state.printer.gcode_move?.gcode_position ?? [0, 0, 0, 0]
         return {
             x: pos[0]?.toFixed(2) ?? '--',
             y: pos[1]?.toFixed(2) ?? '--',
             z: pos[2]?.toFixed(3) ?? '--',
+            e: pos[3]?.toFixed(2) ?? '--',
         }
     }
 
