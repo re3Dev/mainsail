@@ -23,8 +23,8 @@
             <v-card-text class="py-0">
                 <settings-row title="Mesh Procedure">
                     <v-radio-group v-model="meshProcedure" row hide-details class="mt-0 mesh-radio">
-                        <v-radio label="Slow" value="slow" class="mr-4"/>
-                        <v-radio label="Fast" value="fast" />
+                        <v-radio label="Fine" value="fine" class="mr-4"/>
+                        <v-radio label="Rough" value="rough" />
                     </v-radio-group>
                 </settings-row>
             </v-card-text>
@@ -33,7 +33,7 @@
 
             <!-- NEW: Nozzle cleanliness slider -->
             <v-card-text class="pt-0">
-                <settings-row title="Nozzles clean?">
+                <settings-row title="Are nozzles clean?">
                     <v-switch
                         v-model="nozzleCleanBool"
                         inset
@@ -88,7 +88,7 @@ import { defaultBigThumbnailBackground } from '@/store/variables'
 })
 export default class StartPrintDialog extends Mixins(BaseMixin) {
     mdiPrinter3d = mdiPrinter3d
-    meshProcedure: 'slow' | 'fast' = (localStorage.getItem('meshProcedure') as any) ?? 'slow'
+    meshProcedure: 'fine' | 'rough' = (localStorage.getItem('meshProcedure') as any) ?? 'fine'
     // NEW: slider state (1 = Clean default so operators don’t get nagged)
     nozzleCleanBool: boolean = (localStorage.getItem('nozzleCleanBool') ?? 'true') === 'true'
     // /NEW
@@ -164,10 +164,10 @@ async startPrint(filename = '') {
 
   try {
     const cleanInt = this.nozzleCleanBool ? 1 : 0
-    const macro = this.meshProcedure === 'fast' ? 'FAST_PROCEDURE' : 'STARTUP_PROCEDURE'
+    const mesh_type = this.meshProcedure === 'rough' ? 1 : 0
 
     // Fire your macro with the cleanliness flag
-    await this.$store.dispatch('printer/sendGcode', `${macro} CLEAN=${cleanInt}`)
+    await this.$store.dispatch('printer/sendGcode', `MESH_PROCEDURE CLEAN=${cleanInt} MESH_TYPE=${mesh_type}`)
 
     // Start the print as usual
     this.closeDialog()
