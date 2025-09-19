@@ -6,9 +6,9 @@
         @click:outside="closeDialog"
         @keydown.esc="closeDialog">
         <v-card>
-            <div v-if="bigThumbnailUrl" class="d-flex align-center justify-center" style="min-height: 200px">
+            <div v-if="file.big_thumbnail" class="d-flex align-center justify-center" style="min-height: 200px">
                 <v-img
-                    :src="bigThumbnailUrl"
+                    :src="file.big_thumbnail"
                     :max-width="maxThumbnailWidth"
                     class="d-inline-block"
                     :style="bigThumbnailStyle" />
@@ -19,6 +19,34 @@
                     {{ question }}
                 </p>
             </v-card-text>
+            <!-- Mesh Procedure (radio buttons) -->
+            <v-card-text class="py-0">
+                <settings-row title="Mesh Procedure">
+                    <v-radio-group v-model="meshProcedure" row hide-details class="mt-0 mesh-radio">
+                        <v-radio label="Slow" value="slow" class="mr-4"/>
+                        <v-radio label="Fast" value="fast" />
+                    </v-radio-group>
+                </settings-row>
+            </v-card-text>
+
+
+
+            <!-- NEW: Nozzle cleanliness slider -->
+            <v-card-text class="pt-0">
+                <settings-row title="Nozzles clean?">
+                    <v-switch
+                        v-model="nozzleCleanBool"
+                        inset
+                        hide-details
+                        class="mt-0"
+                        :label="nozzleCleanBool ? 'Clean' : 'Dirty'"
+                />
+                </settings-row>
+            </v-card-text>
+            <v-divider class="mt-2 mb-0" />
+            <!-- /NEW -->
+
+
             <start-print-dialog-spoolman v-if="moonrakerComponents.includes('spoolman')" :file="file" />
             <template v-if="moonrakerComponents.includes('timelapse')">
                 <v-divider v-if="!moonrakerComponents.includes('spoolman')" class="mt-3 mb-2" />
@@ -51,7 +79,7 @@ import { FileStateGcodefile } from '@/store/files/types'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { mdiPrinter3d } from '@mdi/js'
 import { ServerSpoolmanStateSpool } from '@/store/server/spoolman/types'
-import { defaultBigThumbnailBackground, thumbnailBigMin } from '@/store/variables'
+import { defaultBigThumbnailBackground } from '@/store/variables'
 
 @Component({
     components: {
@@ -60,6 +88,10 @@ import { defaultBigThumbnailBackground, thumbnailBigMin } from '@/store/variable
 })
 export default class StartPrintDialog extends Mixins(BaseMixin) {
     mdiPrinter3d = mdiPrinter3d
+    meshProcedure: 'slow' | 'fast' = (localStorage.getItem('meshProcedure') as any) ?? 'slow'
+    // NEW: slider state (1 = Clean default so operators don’t get nagged)
+    nozzleCleanBool: boolean = (localStorage.getItem('nozzleCleanBool') ?? 'true') === 'true'
+    // /NEW
 
     @Prop({ required: true, default: false })
     declare readonly bool: boolean
@@ -119,47 +151,52 @@ export default class StartPrintDialog extends Mixins(BaseMixin) {
         return this.$t('Dialogs.StartPrint.DoYouWantToStartFilename', { filename: this.file?.filename ?? 'unknown' })
     }
 
-    get fileTimestamp() {
-        return typeof this.file.modified.getTime === 'function' ? this.file.modified.getTime() : 0
-    }
-
-    get thumbnails() {
-        return this.file.thumbnails ?? []
-    }
-
-    get bigThumbnail() {
-        return this.thumbnails.find((thumbnail) => thumbnail.width >= thumbnailBigMin)
-    }
-
-    get currentPathWithoutSlash() {
-        if (this.currentPath.startsWith('/')) return this.currentPath.substring(1)
-
-        return this.currentPath
-    }
-
-    get bigThumbnailUrl() {
-        if (this.bigThumbnail === undefined || !('relative_path' in this.bigThumbnail)) return null
-
-        const baseArray = [this.apiUrl, 'server/files/gcodes']
-        if (this.currentPathWithoutSlash) baseArray.push(this.currentPathWithoutSlash)
-        baseArray.push(this.bigThumbnail.relative_path)
-        const baseUrl = baseArray.join('/')
-
-        return `${baseUrl}?timestamp=${this.fileTimestamp}`
-    }
-
     get maxThumbnailWidth() {
-        return this.bigThumbnail?.width ?? 400
+        return this.file?.big_thumbnail_width ?? 400
     }
 
-    startPrint(filename = '') {
-        filename = (this.currentPath + '/' + filename).substring(1)
-        this.closeDialog()
-        this.$socket.emit('printer.print.start', { filename: filename }, { action: 'switchToDashboard' })
-    }
+    // /NEW
+
+    // MOD: make async and send macro first
+// Send 0/1 to Klipper based on the toggle
+async startPrint(filename = '') {
+  filename = (this.currentPath + '/' + filename).substring(1)
+
+  try {
+    const cleanInt = this.nozzleCleanBool ? 1 : 0
+    const macro = this.meshProcedure === 'fast' ? 'FAST_PROCEDURE' : 'STARTUP_PROCEDURE'
+
+    // Fire your macro with the cleanliness flag
+    await this.$store.dispatch('printer/sendGcode', `${macro} CLEAN=${cleanInt}`)
+
+    // Start the print as usual
+    this.closeDialog()
+    this.$socket.emit('printer.print.start', { filename }, { action: 'switchToDashboard' })
+  } catch (e) {
+    this.$store.dispatch('ui/showSnackbar', {
+      color: 'error',
+      text: `Failed to start: ${e?.message || e}`
+    })
+  }
+}
 
     closeDialog() {
         this.$emit('closeDialog')
     }
 }
 </script>
+<style scoped>
+/* Pierce Vuetify internals */
+.mesh-radio ::v-deep .v-input--radio-group__input,
+.mesh-radio ::v-deep .v-input__slot {
+  display: flex;
+  flex-wrap: nowrap !important;
+  align-items: center;
+}
+
+/* Keep each option on one line + spacing */
+.mesh-radio ::v-deep .v-radio {
+  white-space: nowrap;
+  margin-right: 16px;
+}
+</style>
